@@ -21,7 +21,6 @@ detect_kataegis_chr = function(chr.dat){
       end_idx = end_idx+1
       queue = chr.dat[start_idx:end_idx]
     }else{
-
       while( mean(diff(queue[, Start_Position], na.rm = TRUE), na.rm = TRUE) <= 1000 &
              end_idx <= nrow(chr.dat) ){
         end_idx = end_idx+1
@@ -30,7 +29,7 @@ detect_kataegis_chr = function(chr.dat){
 
       #---Summarize kat loci
       x = chr.dat[(start_idx):c(end_idx-1)]  # start_idx not incremented after kat detected
-      ycp = data.table::data.table(Chromosome = unique(as.numeric(as.character(x[,Chromosome]))),
+      ycp = data.table::data.table(Chromosome = unique( x[,Chromosome] ),
                                    Start_Position = x[,min(Start_Position)],
                                    End_Position = x[,max(Start_Position)],
                                    nMuts = nrow(x),
