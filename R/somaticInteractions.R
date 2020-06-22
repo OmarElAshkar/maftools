@@ -31,16 +31,11 @@
 #' @return list of data.tables
 #' @export
 
-<<<<<<< HEAD
-somaticInteractions = function(maf, top = 25, genes = NULL, pvalue = c(0.05, 0.01), returnAll = FALSE, geneOrder = NULL, fontSize = 0.8, verbose = TRUE){
-
-=======
 somaticInteractions = function(maf, top = 25, genes = NULL, pvalue = c(0.05, 0.01), returnAll = TRUE,
                                geneOrder = NULL, fontSize = 0.8, showSigSymbols = TRUE,
                                showCounts = FALSE, countStats = 'all', countType = 'all',
                                countsFontSize = 0.8, countsFontColor = "black", colPal = "BrBG", showSum = TRUE, colNC=9, nShiftSymbols = 5, sigSymbolsSize=2,sigSymbolsFontSize=0.9, pvSymbols = c(46,42), limitColorBreaks = FALSE){
   #browser()
->>>>>>> master
   if(is.null(genes)){
     genes = getGeneSummary(x = maf)[1:top, Hugo_Symbol]
   }

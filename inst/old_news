@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 ## CHANGES IN VERSION 2.2.10
 ### BUG FIX
     o Avoid in place class conversion for data.frames Issue: #432
@@ -35,7 +33,6 @@
     o Update y-axis label for `tcgaCompare` plot. Issue: #366
     o `annovarToMaf` annotating variants with MNPs. Issue: #335
 
->>>>>>> master
 CHANGES IN VERSION 2.0.16
 -------------------------
     o Minor bug fix in extractSignatures. Issue #369
