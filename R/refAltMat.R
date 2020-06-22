@@ -4,12 +4,16 @@
 #' @param useSyn Use synonymous variants. Default FALSE
 #' @param subWT Substitite WT allele with `Ref>Ref`. Default FALSE and fills with the value passed to `fillChar`
 #' @param fillChar Default '.' Only applicable when `subWT`` is `TRUE`
+#' @param ... further arguments passed to \code{subsetMaf}. USe this to restrict the output to `genes` or `tsb` of interest.
 #' @export
 #' @examples
 #' laml.maf <- system.file("extdata", "tcga_laml.maf.gz", package = "maftools")
 #' laml <- read.maf(maf = laml.maf)
+#' refAltMat(m = laml)
+#' refAltMat(m = laml, genes = 'DNMT3A') #Restrict output to DNMT3A gene
+#' refAltMat(m = laml, tsb = 'TCGA-AB-2987') #Restrict output to the sample TCGA-AB-2987
 #'@return data.table
-refAltMat = function(m, useSyn = FALSE, fillChar = '.', subWT = FALSE){
+refAltMat = function(m, useSyn = FALSE, fillChar = '.', subWT = FALSE, ...){
 
   query = subsetMaf(
     maf = m,
@@ -17,8 +21,13 @@ refAltMat = function(m, useSyn = FALSE, fillChar = '.', subWT = FALSE){
     includeSyn = useSyn,
     mafObj = FALSE,
     restrictTo = "mutations",
-    query = "Variant_Type != 'CNV'"
+    query = "Variant_Type != 'CNV'",
+    ...
   )
+
+  if(nrow(query) == 0){
+    stop("Zero variants found!")
+  }
 
   query[, loci_id:= paste0(Chromosome, ":", Start_Position, ":", Hugo_Symbol)]
   query[, refalt:= paste0(Reference_Allele, ">", Tumor_Seq_Allele2)]

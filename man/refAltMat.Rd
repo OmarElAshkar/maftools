@@ -4,7 +4,7 @@
 \alias{refAltMat}
 \title{Create Ref-Alt matrix}
 \usage{
-refAltMat(m, useSyn = FALSE, fillChar = ".", subWT = FALSE)
+refAltMat(m, useSyn = FALSE, fillChar = ".", subWT = FALSE, ...)
 }
 \arguments{
 \item{m}{an \code{\link{MAF}} object}
@@ -14,6 +14,8 @@ refAltMat(m, useSyn = FALSE, fillChar = ".", subWT = FALSE)
 \item{fillChar}{Default '.' Only applicable when `subWT`` is `TRUE`}
 
 \item{subWT}{Substitite WT allele with `Ref>Ref`. Default FALSE and fills with the value passed to `fillChar`}
+
+\item{...}{further arguments passed to \code{subsetMaf}. USe this to restrict the output to `genes` or `tsb` of interest.}
 }
 \value{
 data.table
@@ -27,4 +29,7 @@ A small function to create a Reference, ALt allele matrix for every muatted loci
 \examples{
 laml.maf <- system.file("extdata", "tcga_laml.maf.gz", package = "maftools")
 laml <- read.maf(maf = laml.maf)
+refAltMat(m = laml)
+refAltMat(m = laml, genes = 'DNMT3A') #Restrict output to DNMT3A gene
+refAltMat(m = laml, tsb = 'TCGA-AB-2987') #Restrict output to the sample TCGA-AB-2987
 }
