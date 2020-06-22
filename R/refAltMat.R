@@ -26,7 +26,10 @@ refAltMat = function(m, useSyn = FALSE, fillChar = '.', subWT = FALSE){
     data = query,
     loci_id + Reference_Allele + Tumor_Seq_Allele2 ~ Tumor_Sample_Barcode,
     value.var = "refalt",
-    fill = fillChar
+    fill = fillChar, fun.aggregate = function(x){
+      x = unique(as.character(x))
+      ifelse(test = length(x) > 1, yes = paste(x, collapse = "|"), no = x)
+    }
   )
 
   if(subWT){
