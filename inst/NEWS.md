@@ -1,7 +1,7 @@
 ## CHANGES IN VERSION 2.5.05 (development)
 ### NEW FUNCTIONS AND FEATURES
 
-1. 
+1. Added `refAltMat` function. Issue: [550](https://github.com/PoisonAlien/maftools/issues/550)
 
 
 ## CHANGES IN VERSION 2.4.10 (GitHub master)
