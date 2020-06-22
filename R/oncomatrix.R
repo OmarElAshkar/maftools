@@ -29,11 +29,14 @@ createOncoMatrix = function(m, g = NULL, chatty = TRUE, add_missing = FALSE){
     subMaf[, Hugo_Symbol := factor(x = Hugo_Symbol, levels = g)]
   }
 
+  cnv_events = c(c("Amp", "Del"), as.character(subMaf[Variant_Type == "CNV"][, .N, Variant_Classification][, Variant_Classification]))
+  cnv_events = unique(cnv_events)
+
   oncomat = data.table::dcast(data = subMaf[,.(Hugo_Symbol, Variant_Classification, Tumor_Sample_Barcode)], formula = Hugo_Symbol ~ Tumor_Sample_Barcode,
-                              fun.aggregate = function(x){
+                              fun.aggregate = function(x, cnv = cnv_events){
                                 x = unique(as.character(x))
-                                xad = x[x %in% c('Amp', 'Del')]
-                                xvc = x[!x %in% c('Amp', 'Del')]
+                                xad = x[x %in% cnv]
+                                xvc = x[!x %in% cnv]
 
                                 if(length(xvc)>0){
                                   xvc = ifelse(test = length(xvc) > 1, yes = 'Multi_Hit', no = xvc)
@@ -116,7 +119,7 @@ createOncoMatrix = function(m, g = NULL, chatty = TRUE, add_missing = FALSE){
     oncomat.copy <- oncomat.copy[,colnames(mdf)]
     oncomat.copy <- oncomat.copy[rownames(mdf),]
 
-    return(list(oncoMatrix = oncomat.copy, numericMatrix = mdf, vc = variant.classes))
+    return(list(oncoMatrix = oncomat.copy, numericMatrix = mdf, vc = variant.classes, cnvc = cnv_events))
   }
 }
 
@@ -232,8 +235,11 @@ sortByGeneOrder = function(m, g){
 #col_var = a vector color
 bubble_plot = function(plot_dat, lab_dat = NULL, x_var = NULL, y_var = NULL,
                        bubble_var = NULL, bubble_size = 1, text_var = NULL,
-                       text_size = 1, col_var = NULL, return_dat = FALSE){
+                       text_size = 1, col_var = NULL, return_dat = FALSE, showscale = FALSE, xlab = NULL, ylab = NULL){
 
+  if(showscale){
+    lo = layout(mat = matrix(data = c(1, 2), nrow = 1, ncol = 2), widths = c(5, 1))
+  }
   x_col_idx = which(colnames(plot_dat) == x_var)
   y_col_idx = which(colnames(plot_dat) == y_var)
   colnames(plot_dat)[c(x_col_idx, y_col_idx)] = c("x", "y")
@@ -323,47 +329,50 @@ bubble_plot = function(plot_dat, lab_dat = NULL, x_var = NULL, y_var = NULL,
   suppressWarnings(symbols(x = plot_dat$x, y = plot_dat$y, circles = plot_dat$size_z, inches = 0.1, bg = plot_dat$color_var, xlim = x_lims[c(1, 4)],
           ylim = y_lims[c(1, 4)], xlab = NA, ylab = NA, fg = "white", axes = FALSE))
   axis(side = 1, at = x_ticks)
-  axis(side = 2, at = y_ticks, las = 2)
+  axis(side = 2, at = y_ticks, las = 2, labels = abs(y_ticks))
   abline(h = y_ticks, v = x_ticks, lty = 2,
          col = grDevices::adjustcolor(col = "gray70", alpha.f = 0.5), lwd = 0.75)
 
-  if(!is.null(lab_dat)){
-    # points(x = lab_dat$x, y = lab_dat$y, cex = lab_dat$size_z,
-    #        pch = 16, col = lab_dat$color_var)
-    if(nrow(lab_dat) > 0 & nrow(lab_dat) < 2){
-      text(x = lab_dat$x, y = lab_dat$y, labels = lab_dat$z_text, adj = 1, offset = 0.2, cex = text_size, col = lab_dat$color_var)
-    }else if(nrow(lab_dat) >= 2){
-      symbols(x = lab_dat$x, y = lab_dat$y, circles = lab_dat$size_z,
-              bg = lab_dat$color_var, add = TRUE, fg = "white", inches = 0.1)
+  mtext(text = xlab, side = 1, line = 2)
+  mtext(text = ylab, side = 2, line = 3)
 
-      wordcloud::textplot(x = lab_dat$x, y = lab_dat$y, words = lab_dat$z_text,
-                          cex = text_size, new = FALSE, show.lines = TRUE,
-                          xlim = x_lims[c(1, 4)], ylim = y_lims[c(1, 4)], font = 3, col = lab_dat$color_var)
-    }
+  if(!is.null(lab_dat)){
+    text(x = lab_dat$x, y = lab_dat$y, labels = lab_dat$z_text, adj = 1, offset = 0.2, cex = text_size, col = lab_dat$color_var, xpd = TRUE)
+  }
+
+  if(showscale){
+    par(mar = c(2, 1, 1, 1))
+    plot(x = NA, ylim = c(0, 4.5), xlim = c(0, 2), axes = FALSE, xlab = NA, ylab = NA)
+    bs = seq(min(plot_dat$size_z), max(plot_dat$size_z), length.out = 4)
+    bslabs = round(seq(min(plot_dat$z), max(plot_dat$z), length.out = 4), 2)
+    symbols(y = seq(3, 4, length.out = length(bs)), x = rep(0, length(bs)), circles = bs, add = TRUE, inches = 0.1, bg = "black", xpd = TRUE)
+    text(x = rep(1, length(bs)), y = seq(3, 4, length.out = length(bs)), labels = bslabs, xpd = TRUE, adj =0)
+    text(x = 0, y = 4.4, labels = "-log10(q)", xpd = TRUE, adj = 0)
   }
 }
 
 
 #Get plot layout for oncoplot
 plot_layout = function(clinicalFeatures = NULL, drawRowBar = TRUE,
-                       drawColBar = TRUE, draw_titv = FALSE, exprsTbl = NULL){
+                       drawColBar = TRUE, draw_titv = FALSE, exprsTbl = NULL, legend_height = 4, anno_height = 1){
+
   if(is.null(clinicalFeatures)){
     if(draw_titv){
       if(!drawRowBar & !drawColBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2,3), nrow = 3, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 4, 4))
+          mat_lo = matrix(data = c(1,2,3,rep(0,3)), nrow = 3, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(12, 4, legend_height), widths = c(4,0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,5), nrow = 3, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 4, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, 4, legend_height), widths = c(1, 4))
         }
       }else if(!drawRowBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2,3, 4), nrow = 4, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 4, 4))
+          mat_lo = matrix(data = c(1,2,3, 4,rep(0,4)), nrow = 4, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 4, legend_height), widths = c(4, 0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7), nrow = 4, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 4, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 4, legend_height), widths = c(1, 4))
         }
       }else if(!drawColBar){
         if(is.null(exprsTbl)){
@@ -371,49 +380,49 @@ plot_layout = function(clinicalFeatures = NULL, drawRowBar = TRUE,
           lo = graphics::layout(mat = mat_lo, heights = c(12, 4, 4), widths = c(4, 1))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7,7), nrow = 3, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 4, 4), widths = c(1, 4, 1))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, 4, legend_height), widths = c(1, 4, 1))
         }
       }else{
         if(is.null(exprsTbl)){
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7), nrow = 4, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, 4, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, 4, legend_height))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,8,9,10,10,10), nrow = 4, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(1,4, 1), heights = c(4, 12, 4, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(1,4, 1), heights = c(4, 12, 4, legend_height))
         }
       }
     }else{
       if(!drawRowBar & !drawColBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2), nrow = 2, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 4))
+          mat_lo = matrix(data = c(1,2,rep(0,2)), nrow = 2, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(12, legend_height), widths = c(4, 0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,3), nrow = 2, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, legend_height), widths = c(1, 4))
         }
       }else if(!drawRowBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2,3), nrow = 3, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 4))
+          mat_lo = matrix(data = c(1,2,3,rep(0,3)), nrow = 3, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, legend_height), widths = c(4, 0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,5), nrow = 3, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, legend_height), widths = c(1, 4))
         }
       }else if(!drawColBar){
         if(is.null(exprsTbl)){
           mat_lo = matrix(data = c(1,2,3,3), nrow = 2, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 4), widths = c(4, 1))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, legend_height), widths = c(4, 1))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,4,4), nrow = 2, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 4), widths = c(1, 4, 1))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, legend_height), widths = c(1, 4, 1))
         }
       }else{
         if(is.null(exprsTbl)){
           mat_lo = matrix(data = c(1,2,3,4,5,5), nrow = 3, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, legend_height))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7,7), nrow = 3, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(1, 4, 1), heights = c(4, 12, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(1, 4, 1), heights = c(4, 12, legend_height))
         }
       }
     }
@@ -421,69 +430,69 @@ plot_layout = function(clinicalFeatures = NULL, drawRowBar = TRUE,
     if(draw_titv){
       if(!drawRowBar & !drawColBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2,3,4), nrow = 4, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4, 4))
+          mat_lo = matrix(data = c(1,2,3,4,rep(0,4)), nrow = 4, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, 4, legend_height), widths = c(4, 0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7), nrow = 4, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, 4, legend_height), widths = c(1, 4))
         }
       }else if(!drawRowBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2,3,4,5), nrow = 5, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 1, 4, 4))
+          mat_lo = matrix(data = c(1,2,3,4,5,rep(0,5)), nrow = 5, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, anno_height, 4, legend_height), widths = c(4, 0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,8,9,9), nrow = 5, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 1, 4, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, anno_height, 4, legend_height), widths = c(1, 4))
         }
       }else if(!drawColBar){
         if(is.null(exprsTbl)){
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7), nrow = 4, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4, 4), widths = c(4, 1))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, 4, legend_height), widths = c(4, 1))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,8,9,10,10,10), nrow = 4, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4, 4), widths = c(1, 4, 1))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, 4, legend_height), widths = c(1, 4, 1))
         }
       }else{
         if(is.null(exprsTbl)){
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,8,9,9), nrow = 5, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, 1, 4, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, anno_height, 4, legend_height))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,8,9,10,11,12,13,13,13), nrow = 5, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(1, 4, 1), heights = c(4, 12, 1, 4, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(1, 4, 1), heights = c(4, 12, anno_height, 4, legend_height))
         }
       }
     }else{
       if(!drawRowBar & !drawColBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2,3), nrow = 3, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4))
+          mat_lo = matrix(data = c(1,2,3,rep(0,3)), nrow = 3, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, legend_height), widths = c(4, 0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,5), nrow = 3, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, legend_height), widths = c(1, 4))
         }
       }else if(!drawRowBar){
         if(is.null(exprsTbl)){
-          mat_lo = matrix(data = c(1,2,3,4), nrow = 4, ncol = 1, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 1, 4))
+          mat_lo = matrix(data = c(1,2,3,4,rep(0,4)), nrow = 4, ncol = 2, byrow = FALSE)
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, anno_height, legend_height), widths = c(4, 0.5))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7), nrow = 4, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, 1, 4), widths = c(1, 4))
+          lo = graphics::layout(mat = mat_lo, heights = c(4, 12, anno_height, legend_height), widths = c(1, 4))
         }
       }else if(!drawColBar){
         if(is.null(exprsTbl)){
           mat_lo = matrix(data = c(1,2,3,4,5,5), nrow = 3, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4), widths = c(4, 1))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, legend_height), widths = c(4, 1))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7,7), nrow = 3, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4), widths = c(1, 4, 1))
+          lo = graphics::layout(mat = mat_lo, heights = c(12, anno_height, legend_height), widths = c(1, 4, 1))
         }
       }else{
         if(is.null(exprsTbl)){
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,7), nrow = 4, ncol = 2, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, 1, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(4, 1), heights = c(4, 12, anno_height, legend_height))
         }else{
           mat_lo = matrix(data = c(1,2,3,4,5,6,7,8,9,10,10,10), nrow = 4, ncol = 3, byrow = TRUE)
-          lo = graphics::layout(mat = mat_lo, widths = c(1, 4, 1), heights = c(4, 12, 1, 4))
+          lo = graphics::layout(mat = mat_lo, widths = c(1, 4, 1), heights = c(4, 12, anno_height, legend_height))
         }
       }
     }
@@ -492,17 +501,36 @@ plot_layout = function(clinicalFeatures = NULL, drawRowBar = TRUE,
   lo
 }
 
-get_vcColors = function(alpha = 1){
-  col = c(RColorBrewer::brewer.pal(12,name = "Paired"), RColorBrewer::brewer.pal(11,name = "Spectral")[1:3],'black', 'violet', 'royalblue', '#7b7060')
-  col = grDevices::adjustcolor(col = col, alpha.f = alpha)
-  names(col) = names = c('Nonstop_Mutation','Frame_Shift_Del','IGR','Missense_Mutation','Silent','Nonsense_Mutation',
-                         'RNA','Splice_Site','Intron','Frame_Shift_Ins','Nonstop_Mutation','In_Frame_Del','ITD','In_Frame_Ins',
-                         'Translation_Start_Site',"Multi_Hit", 'Amp', 'Del', 'Complex_Event')
+get_domain_cols = function(){
+  c("#f3a683", "#f7d794", "#778beb", "#e77f67", "#cf6a87", "#f19066",
+    "#f5cd79", "#546de5", "#e15f41", "#c44569", "#786fa6", "#f8a5c2",
+    "#63cdda", "#ea8685", "#596275", "#574b90", "#f78fb3", "#3dc1d3",
+    "#e66767", "#303952")
+}
+
+get_vcColors = function(alpha = 1, websafe = FALSE, named = TRUE){
+  if(websafe){
+    col = c("#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
+            "#03A9F4", "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39",
+            "#FFEB3B", "#FFC107", "#FF9800", "#FF5722", "#795548", "#9E9E9E",
+            "#607D8B")
+  }else{
+    col = c(RColorBrewer::brewer.pal(11, name = "Paired"), RColorBrewer::brewer.pal(11,name = "Spectral")[1:3],'black', 'violet', 'royalblue', '#7b7060', '#535c68')
+    col = grDevices::adjustcolor(col = col, alpha.f = alpha)
+  }
+
+  if(named){
+    names(col) = names = c('Nonstop_Mutation','Frame_Shift_Del','IGR','Missense_Mutation','Silent','Nonsense_Mutation',
+                          'RNA','Splice_Site','Intron','Frame_Shift_Ins','In_Frame_Del','ITD','In_Frame_Ins',
+                          'Translation_Start_Site',"Multi_Hit", 'Amp', 'Del', 'Complex_Event', 'pathway')
+  }
+
   col
 }
 
 get_titvCol = function(alpha = 1){
-  col = c('coral4', 'lightcyan4', 'cornflowerblue', 'lightsalmon1', 'forestgreen', 'deeppink3')
+  col = c("#F44336", "#3F51B5", "#2196F3", "#4CAF50", "#FFC107", "#FF9800")
+  #col = c('coral4', 'lightcyan4', 'cornflowerblue', 'lightsalmon1', 'forestgreen', 'deeppink3')
   col = grDevices::adjustcolor(col = col, alpha.f = alpha)
   names(col) = c('C>T', 'C>G', 'C>A', 'T>A', 'T>C', 'T>G')
   col
@@ -564,3 +592,76 @@ get_anno_cols = function(ann, numericAnnoCol = NULL){
   return(ann_cols)
 }
 
+
+pathway_load = function(maf){
+  pathdb <- system.file("extdata", "BP_SMGs.txt.gz", package = "maftools")
+  pathdb = data.table::fread(input = pathdb, skip = "Gene")
+  pathdb = pathdb[!duplicated(Gene)][,.(Gene, Pathway)]
+  pathdb$Pathway = gsub(pattern = " ", replacement = "_", x = pathdb$Pathway)
+  pathdb_size = pathdb[,.N,Pathway]
+  pathdb = split(pathdb, as.factor(pathdb$Pathway))
+
+
+  altered_pws = lapply(pathdb, function(pw){
+    x = suppressMessages(try(genesToBarcodes(maf = maf, genes = pw$Gene)))
+    if(class(x) == "try-error"){
+      pw_genes = NULL
+    }else{
+      pw_genes = names(genesToBarcodes(maf = maf, genes = pw$Gene, justNames = TRUE, verbose = FALSE))
+    }
+    pw_genes
+  })
+
+  mut_load = lapply(altered_pws, function(x){
+    if(is.null(x)){
+      nsamps =  0
+    }else{
+      nsamps = length(unique(as.character(unlist(
+        genesToBarcodes(
+          maf = maf,
+          genes = x,
+          justNames = TRUE
+        )
+      ))))
+    }
+    nsamps
+  })
+
+  altered_pws = as.data.frame(t(data.frame(lapply(altered_pws, length))))
+  data.table::setDT(x = altered_pws, keep.rownames = TRUE)
+  colnames(altered_pws) = c("Pathway", "n_affected_genes")
+  altered_pws$Pathway = gsub(pattern = "\\.", replacement = "-", x = altered_pws$Pathway)
+  altered_pws = merge(pathdb_size, altered_pws, all.x = TRUE)
+
+  altered_pws[, fraction_affected := n_affected_genes/N]
+  altered_pws$Mutated_samples = unlist(mut_load)
+  nsamps = as.numeric(maf@summary[ID == "Samples", summary])
+  altered_pws[,Fraction_mutated_samples := Mutated_samples/nsamps]
+  altered_pws = altered_pws[order(Fraction_mutated_samples, fraction_affected, decreasing = TRUE)]
+
+  altered_pws = altered_pws[!n_affected_genes %in% 0]
+  altered_pws
+}
+
+#Update missing colors
+update_colors = function(x, y){
+  x = as.character(x)
+
+  avail_colors = as.character(y[!names(y) %in% x])
+
+  missing_entries = as.character(x)[!as.character(x) %in% names(y)]
+  missing_entries = missing_entries[!missing_entries %in% ""]
+
+  if(length(missing_entries) > 0){
+    if(length(missing_entries) > length(avail_colors)){
+      avail_colors = sample(x = colors(distinct = TRUE), size = length(missing_entries), replace = FALSE)
+      names(avail_colors) = missing_entries
+      y = c(y, avail_colors)
+    }else{
+      avail_colors = avail_colors[1:length(missing_entries)]
+      names(avail_colors) = missing_entries
+      y = c(y, avail_colors)
+    }
+  }
+  y
+}

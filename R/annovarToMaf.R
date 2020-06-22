@@ -88,7 +88,6 @@ annovarToMaf = function(annovar, Center = NULL, refBuild = 'hg19', tsbCol = NULL
     annovar_values = c(
       exonic = "RNA",
       splicing = "Splice_Site",
-      ncRNA = "RNA",
       UTR5 = "5'UTR",
       UTR3 = "3'UTR",
       intronic = "Intron",
@@ -101,6 +100,8 @@ annovarToMaf = function(annovar, Center = NULL, refBuild = 'hg19', tsbCol = NULL
       `frameshift substitution` = "Frameshift_INDEL",
       stopgain = "Nonsense_Mutation",
       stoploss = "Nonstop_Mutation",
+      startloss = "Translation_Start_Site",
+      startgain = "Unknown", #Can not properly map MAF classification. Setting it to Unknown
       `nonframeshift insertion` = "In_Frame_Ins",
       `nonframeshift deletion` = "In_Frame_Del",
       `nonframeshift block substitution` = "Inframe_INDEL",
@@ -176,23 +177,18 @@ annovarToMaf = function(annovar, Center = NULL, refBuild = 'hg19', tsbCol = NULL
     #Add Variant-type annotations based on difference between ref and alt alleles
     cat("-Adding Variant_Type\n")
     ann[,ref_alt_diff := nchar(Ref) - nchar(Alt)]
-    #ann[, Variant_Type := ifelse(ref_alt_diff == 0 , yes = "SNP", no = ifelse(ref_alt_diff < 0 , yes = "INS", no = "DEL"))]
-    ann$Variant_Type = apply(ann[,.(Ref, Alt)], 1, function(x) {
-      xx = which(x == '-')
-      if(length(xx) == 0){
-        if(any(nchar(x) > 1)){
-          return("MNP")
-        }else{
-          return("SNP")
-        }
-      }else if(names(xx) == 'Ref'){
-        return("INS")
-      }else if(names(xx) == 'Alt'){
-        return("DEL")
-      }else{
-        return(NA)
-      }
-    })
+    ann[, Variant_Type := ifelse(ref_alt_diff == 0 , yes = "SNP", no = ifelse(ref_alt_diff < 0 , yes = "INS", no = "DEL"))]
+
+    #Check for MNPs (they are neither INDELS nor SNPs)
+    ann$Variant_Type = ifelse(
+        test = ann$Variant_Type == "SNP",
+        yes = ifelse(
+          test = nchar(ann$Ref) > 1,
+          yes = "MNP",
+          no = "SNP"
+        ),
+        no = ann$Variant_Type
+      )
 
     #Annotate MNPs as Unknown VC
     ann_mnps = ann[Variant_Type %in% "MNP"]
@@ -248,7 +244,7 @@ annovarToMaf = function(annovar, Center = NULL, refBuild = 'hg19', tsbCol = NULL
     ann[, ref_alt_diff := NULL]
 
   #Re-roganize columns
-  colnames(ann)[which(colnames(ann) %in% c("Chr", "Start", "End", "Ref", "Alt"))] = c("Chromosome", "Start_Position", "End_Position", "Reference_Allele", "Tumor_Seq_Allele2")
+  colnames(ann)[match(c("Chr", "Start", "End", "Ref", "Alt"), colnames(ann))] = c("Chromosome", "Start_Position", "End_Position", "Reference_Allele", "Tumor_Seq_Allele2")
   ord1 = colnames(x = ann)[colnames(x = ann) %in% c("Hugo_Symbol", "Chromosome", "Start_Position", "End_Position", "Reference_Allele", "Tumor_Seq_Allele2", "Variant_Classification", "Variant_Type", "Tumor_Sample_Barcode", "tx", "exon", "txChange", "aaChange")]
   ord2 = colnames(x = ann)[!colnames(x = ann) %in% c("Hugo_Symbol", "Chromosome", "Start_Position", "End_Position", "Reference_Allele", "Tumor_Seq_Allele2", "Variant_Classification", "Variant_Type", "Tumor_Sample_Barcode", "tx", "exon", "txChange", "aaChange")]
   ann = ann[,c(ord1, ord2), with = FALSE]

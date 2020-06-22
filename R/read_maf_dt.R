@@ -45,18 +45,32 @@ read.maf = function(maf, clinicalData = NULL, removeDuplicatedVariants = TRUE, u
       cat('-Reading\n')
     }
 
-    if(as.logical(length(grep(pattern = 'gz$', x = maf, fixed = FALSE)))){
-      #If system is Linux use fread, else use gz connection to read gz file.
-      if(Sys.info()[['sysname']] == 'Windows'){
-        maf.gz = gzfile(description = maf, open = 'r')
-        suppressWarnings(maf <- data.table::as.data.table(read.csv(file = maf.gz, header = TRUE, sep = '\t', stringsAsFactors = FALSE, comment.char = "#")))
-        close(maf.gz)
-      } else{
-        maf = suppressWarnings(data.table::fread(cmd = paste('zcat <', maf), sep = '\t', stringsAsFactors = FALSE, verbose = FALSE, data.table = TRUE, showProgress = TRUE, header = TRUE, fill = TRUE, skip = "Hugo_Symbol"))
-      }
-    } else{
-      suppressWarnings(maf <- data.table::fread(input = maf, sep = "\t", stringsAsFactors = FALSE, verbose = FALSE, data.table = TRUE, showProgress = TRUE, header = TRUE, fill = TRUE, skip = "Hugo_Symbol"))
-    }
+    maf <-
+      data.table::fread(
+        file = maf,
+        sep = "\t",
+        stringsAsFactors = FALSE,
+        verbose = FALSE,
+        data.table = TRUE,
+        showProgress = TRUE,
+        header = TRUE,
+        fill = TRUE,
+        skip = "Hugo_Symbol",
+        quote = ""
+      )
+
+    # if(as.logical(length(grep(pattern = 'gz$', x = maf, fixed = FALSE)))){
+    #   #If system is Linux use fread, else use gz connection to read gz file.
+    #   if(Sys.info()[['sysname']] == 'Windows'){
+    #     maf.gz = gzfile(description = maf, open = 'r')
+    #     suppressWarnings(maf <- data.table::as.data.table(read.csv(file = maf.gz, header = TRUE, sep = '\t', stringsAsFactors = FALSE, comment.char = "#")))
+    #     close(maf.gz)
+    #   } else{
+    #     maf = suppressWarnings(data.table::fread(cmd = paste('zcat <', maf), sep = '\t', stringsAsFactors = FALSE, verbose = FALSE, data.table = TRUE, showProgress = TRUE, header = TRUE, fill = TRUE, skip = "Hugo_Symbol", quote = ""))
+    #   }
+    # } else{
+    #   suppressWarnings(maf <- data.table::fread(input = maf, sep = "\t", stringsAsFactors = FALSE, verbose = FALSE, data.table = TRUE, showProgress = TRUE, header = TRUE, fill = TRUE, skip = "Hugo_Symbol", quote = ""))
+    # }
   }
 
   #2. validate MAF file
@@ -120,7 +134,7 @@ read.maf = function(maf, clinicalData = NULL, removeDuplicatedVariants = TRUE, u
     gisticIp = gisticIp[!duplicated(id)]
     gisticIp[,id := NULL]
 
-    maf = rbind(maf, gisticIp, fill =TRUE)
+    maf = data.table::rbindlist(list(maf, gisticIp), fill = TRUE, use.names = TRUE)
     maf$Tumor_Sample_barcode = factor(x = maf$Tumor_Sample_barcode,
                                       levels = unique(c(levels(maf$Tumor_Sample_barcode), unique(as.character(gisticIp$Tumor_Sample_barcode)))))
 
@@ -130,7 +144,8 @@ read.maf = function(maf, clinicalData = NULL, removeDuplicatedVariants = TRUE, u
       cat('-Processing copy number data\n')
     }
     if(is.data.frame(cnTable)){
-      cnDat = data.table::setDT(cnTable)
+      cnDat = data.table::copy(cnTable)
+      data.table::setDT(x = cnDat)
     }else{
       cnDat = data.table::fread(input = cnTable, sep = '\t', stringsAsFactors = FALSE, header = TRUE, colClasses = 'character')
     }
@@ -161,7 +176,7 @@ read.maf = function(maf, clinicalData = NULL, removeDuplicatedVariants = TRUE, u
   m = MAF(data = maf, variants.per.sample = mafSummary$variants.per.sample, variant.type.summary = mafSummary$variant.type.summary,
           variant.classification.summary = mafSummary$variant.classification.summary, gene.summary = mafSummary$gene.summary,
           summary = mafSummary$summary, maf.silent = maf.silent, clinical.data = mafSummary$sample.anno)
-
+  #m = mafSetKeys(maf = m)
 
   if(verbose){
     cat("-Finished in",data.table::timetaken(start_time),"\n")

@@ -4,20 +4,45 @@
 \alias{coOncoplot}
 \title{Draw two oncoplots side by side for cohort comparision.}
 \usage{
-coOncoplot(m1, m2, genes = NULL, m1Name = NULL, m2Name = NULL,
-  clinicalFeatures1 = NULL, clinicalFeatures2 = NULL,
-  annotationColor1 = NULL, annotationColor2 = NULL,
-  annotationFontSize = 1.2, sortByAnnotation1 = FALSE,
-  sortByAnnotation2 = FALSE, additionalFeature1 = NULL,
-  additionalFeaturePch1 = 20, additionalFeatureCol1 = "white",
-  additionalFeatureCex1 = 0.9, additionalFeature2 = NULL,
-  additionalFeaturePch2 = 20, additionalFeatureCol2 = "white",
-  additionalFeatureCex2 = 0.9, sepwd_genes1 = 0.5,
-  sepwd_samples1 = 0.5, sepwd_genes2 = 0.5, sepwd_samples2 = 0.5,
-  colors = NULL, removeNonMutated = TRUE, geneNamefont = 0.8,
-  showSampleNames = FALSE, SampleNamefont = 1, legendFontSize = 1.2,
-  titleFontSize = 1.5, keepGeneOrder = FALSE, bgCol = "#CCCCCC",
-  borderCol = "white")
+coOncoplot(
+  m1,
+  m2,
+  genes = NULL,
+  m1Name = NULL,
+  m2Name = NULL,
+  clinicalFeatures1 = NULL,
+  clinicalFeatures2 = NULL,
+  annotationColor1 = NULL,
+  annotationColor2 = NULL,
+  annotationFontSize = 1.2,
+  sortByAnnotation1 = FALSE,
+  sortByAnnotation2 = FALSE,
+  additionalFeature1 = NULL,
+  additionalFeaturePch1 = 20,
+  additionalFeatureCol1 = "white",
+  additionalFeatureCex1 = 0.9,
+  additionalFeature2 = NULL,
+  additionalFeaturePch2 = 20,
+  additionalFeatureCol2 = "white",
+  additionalFeatureCex2 = 0.9,
+  sepwd_genes1 = 0.5,
+  sepwd_samples1 = 0.5,
+  sepwd_genes2 = 0.5,
+  sepwd_samples2 = 0.5,
+  colors = NULL,
+  removeNonMutated = TRUE,
+  anno_height = 2,
+  legend_height = 4,
+  geneNamefont = 0.8,
+  showSampleNames = FALSE,
+  SampleNamefont = 0.5,
+  barcode_mar = 4,
+  legendFontSize = 1.2,
+  titleFontSize = 1.5,
+  keepGeneOrder = FALSE,
+  bgCol = "#CCCCCC",
+  borderCol = "white"
+)
 }
 \arguments{
 \item{m1}{first \code{\link{MAF}} object}
@@ -72,11 +97,17 @@ coOncoplot(m1, m2, genes = NULL, m1Name = NULL, m2Name = NULL,
 
 \item{removeNonMutated}{Logical. If \code{TRUE} removes samples with no mutations in the oncoplot for better visualization. Default \code{TRUE}.}
 
+\item{anno_height}{Height of clinical margin. Default 2}
+
+\item{legend_height}{Height of legend margin. Default 4}
+
 \item{geneNamefont}{font size for gene names. Default 1}
 
 \item{showSampleNames}{whether to show sample names. Defult FALSE.}
 
-\item{SampleNamefont}{font size for sample names. Default 1}
+\item{SampleNamefont}{font size for sample names. Default 0.5}
+
+\item{barcode_mar}{Margin width for sample names. Default 4}
 
 \item{legendFontSize}{font size for legend. Default 1.2}
 

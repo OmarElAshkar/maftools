@@ -15,11 +15,11 @@ dashboard = function(maf, color = NULL, rmOutlier = TRUE, log_conv = FALSE, titv
 
   data.table::setDF(vcs)
   rownames(x = vcs) = vcs$Tumor_Sample_Barcode
-  vcs = vcs[,-1]
+  vcs = vcs[,-1, drop = FALSE]
   vcs = t(vcs)
 
   lo = matrix(data = 1:6, nrow = 2, byrow = TRUE)
-  layout(mat = lo, heights = c(3.5, 3), widths = c(3, 2, 2))
+  graphics::layout(mat = lo, heights = c(3.5, 3), widths = c(3, 2, 2))
   par(cex.axis = fontSize, font = 3, cex.main = titleSize[1], lwd = 1.2)
 
   #--------------------------- variant classification plot -----------------
@@ -185,7 +185,7 @@ dashboard = function(maf, color = NULL, rmOutlier = TRUE, log_conv = FALSE, titv
 
   data.table::setDF(gs.dat)
   rownames(gs.dat) = gs.dat$Hugo_Symbol
-  gs.dat = gs.dat[,-1]
+  gs.dat = gs.dat[,-1, drop = FALSE]
   gs.dat = t(gs.dat)
   gs.dat = gs.dat[names(sort(rowSums(gs.dat), decreasing = TRUE)),, drop = FALSE]
   gs.dat = gs.dat[,names(sort(colSums(gs.dat))), drop = FALSE]
@@ -201,7 +201,7 @@ dashboard = function(maf, color = NULL, rmOutlier = TRUE, log_conv = FALSE, titv
   axis(side = 1, at = xt, lwd = 1.2, font = 3, las = 2, cex.axis = fontSize*0.9)
   title(main = paste0('Top ',  n, '\nmutated genes'), adj = 0, cex.main = titleSize[1], font = 3)
   text(x = colSums(gs.dat)+1, y = b, labels = rev(paste0(gs.load$AlteredSamples, "%")),
-       font = 4, col = "black", cex = fontSize*0.9, adj = 0)
+       font = 4, col = "black", cex = fontSize*0.9, adj = 0, xpd = TRUE)
   abline(h = b, v = xt,lty = 2, lwd = 0.3,
          col = grDevices::adjustcolor(col = "gray70", alpha.f = 0.6))
 }

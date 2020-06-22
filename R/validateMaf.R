@@ -85,8 +85,14 @@ validateMaf = function(maf, rdup = TRUE, isTCGA = isTCGA, chatty = TRUE){
     }
   }
 
+  # Check type of variant position
+  maf[,Chromosome := as.character(Chromosome)]
+  maf[,Start_Position := as.numeric(as.character(Start_Position))]
+  maf[,End_Position := as.numeric(as.character(End_Position))]
+  #data.table::setkey(x = maf, Chromosome, Start_Position, End_Position)
+
   # Set Factors
-  maf$Tumor_Sample_Barcode = as.factor(maf$Tumor_Sample_Barcode)
+  maf$Tumor_Sample_Barcode = as.factor(as.character(maf$Tumor_Sample_Barcode))
 
   return(maf)
 }

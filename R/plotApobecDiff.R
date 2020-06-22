@@ -13,7 +13,9 @@
 #' @return list of table containing differenatially altered genes. This can be passed to \code{\link{forestPlot}} to plot results.
 #' @examples
 #' \dontrun{
-#' laml.tnm <- trinucleotideMatrix(maf = laml, ref_genome = 'hg19.fa', prefix = 'chr',
+#' laml.maf <- system.file("extdata", "tcga_laml.maf.gz", package = "maftools")
+#' laml <- read.maf(maf = laml.maf)
+#' laml.tnm <- trinucleotideMatrix(maf = laml, ref_genome = 'BSgenome.Hsapiens.UCSC.hg19', prefix = 'chr',
 #' add = TRUE, useSyn = TRUE)
 #' plotApobecDiff(laml.tnm)
 #' }
@@ -78,7 +80,7 @@ plotApobecDiff = function(tnm, maf, pVal = 0.05, title_size = 1, axis_lwd = 1, f
 
   pieCol  = c("#084594", "#9ECAE1")
 
-  layout(matrix(c(1,2,3,1,4,4), 2, 3, byrow = TRUE), widths=c(2, 2, 2))
+  graphics::layout(matrix(c(1,2,3,1,4,4), 2, 3, byrow = TRUE), widths=c(2, 2, 2))
   par(bty="n", mgp = c(0.5,0.5,0), mar = c(2,3.5,4,0) + 0.1, las=1, tcl=-.25, font.main=4, xpd=NA)
 
   yp = as.integer(pretty(log10(sub.tbl[,n_mutations])))

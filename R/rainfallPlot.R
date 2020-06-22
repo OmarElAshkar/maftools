@@ -50,8 +50,9 @@ rainfallPlot = function(maf, tsb = NULL, detectChangePoints = FALSE,
   maf.snp = maf.snp[complete.cases(diff)]
 
   if(is.null(color)){
-    col = RColorBrewer::brewer.pal(n = 6, name = 'Set1')
-    names(col) = c('C>T', 'C>G', 'C>A', 'T>C', 'T>A', 'T>G')
+    #col = RColorBrewer::brewer.pal(n = 6, name = 'Set1')
+    col = get_titvCol()
+    #names(col) = c('C>T', 'C>G', 'C>A', 'T>C', 'T>A', 'T>G')
   }else{
     col = color
   }
@@ -79,7 +80,7 @@ rainfallPlot = function(maf, tsb = NULL, detectChangePoints = FALSE,
 
   ylims = round(seq(min(summary(maf.snp[,diff]), na.rm = TRUE),
                     max(summary(maf.snp[,diff]), na.rm = TRUE), length.out = 4), 2)
-  layout(mat = matrix(data = c(1, 2), nrow = 2, byrow = T), heights= c(4, 1))
+  graphics::layout(mat = matrix(data = c(1, 2), nrow = 2, byrow = T), heights= c(4, 1))
   par(mar = c(1, 4, 2, 0))
   plot(NA, NA,
       axes = FALSE, xlab = NA, ylab = NA,
@@ -117,8 +118,9 @@ rainfallPlot = function(maf, tsb = NULL, detectChangePoints = FALSE,
               pch = 19, xpd = TRUE, xjust = 0, yjust = 0, cex = 1, ncol= 4) #ncol= 2
 
   if(savePlot){
-    pdf(file = paste(tsb, 'rainfallPlot.pdf', sep = '_'),
-                       height = height, width = width, paper = "special", bg = "white")
+    dev.copy( pdf, file = paste(tsb, 'rainfallPlot.pdf', sep = '_'),
+              height = height, width = width, paper = "special", bg = "white")
+    dev.off()
   }
 
 }

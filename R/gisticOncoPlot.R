@@ -23,6 +23,8 @@
 #' @param barcode_mar Default 6
 #' @param sepwd_genes Default 0.5
 #' @param sepwd_samples Default 0.25
+#' @param bgCol Default "#CCCCCC"
+#' @param borderCol Default "white"
 #' @return None.
 #' @examples
 #' all.lesions <- system.file("extdata", "all_lesions.conf_99.txt", package = "maftools")
@@ -38,7 +40,7 @@
 gisticOncoPlot = function(gistic = NULL, top = NULL,
                            showTumorSampleBarcodes = FALSE, gene_mar = 5, barcode_mar = 6, sepwd_genes = 0.5, sepwd_samples = 0.25, clinicalData = NULL, clinicalFeatures = NULL, sortByAnnotation = FALSE, sampleOrder = NULL,
                            annotationColor = NULL, bandsToIgnore = NULL,
-                           removeNonAltered = TRUE, colors = NULL, SampleNamefontSize = 0.6, fontSize = 0.8, legendFontSize = 1.2, annotationFontSize = 1.2) {
+                           removeNonAltered = TRUE, colors = NULL, SampleNamefontSize = 0.6, fontSize = 0.8, legendFontSize = 1.2, annotationFontSize = 1.2, borderCol = "white", bgCol = "#CCCCCC") {
 
   if(class(gistic) != "GISTIC"){
     stop("Input data should be of GISTIC class. Use readGistic function to generate one.")
@@ -65,8 +67,8 @@ gisticOncoPlot = function(gistic = NULL, top = NULL,
     }
   }
 
-  bgCol = "#CCCCCC" #Default gray background
-  borderCol = "white"
+  #bgCol = "#CCCCCC" #Default gray background
+  #borderCol = "white"
 
   #To remove samples with no mutations in top n genes, if user says removeNonAltered
   if(removeNonAltered){
@@ -118,10 +120,10 @@ gisticOncoPlot = function(gistic = NULL, top = NULL,
   #Plot layout
   if(is.null(clinicalFeatures)){
     mat_lo = matrix(data = c(1,2), nrow = 2, ncol = 1, byrow = TRUE)
-    lo = layout(mat = mat_lo, heights = c(12, 2))
+    lo = graphics::layout(mat = mat_lo, heights = c(12, 2))
   }else{
     mat_lo = matrix(data = c(1,2,3), nrow = 3, ncol = 1, byrow = TRUE)
-    lo = layout(mat = mat_lo, heights = c(12, 1, 4))
+    lo = graphics::layout(mat = mat_lo, heights = c(12, 1, 4))
   }
 
   if(is.null(clinicalFeatures)){
