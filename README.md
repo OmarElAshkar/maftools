@@ -5,7 +5,6 @@
 [![bioc](http://www.bioconductor.org/shields/build/devel/bioc/maftools.svg)](http://bioconductor.org/checkResults/devel/bioc-LATEST/maftools/)
 [![GitHub issues](https://img.shields.io/github/issues-raw/poisonalien/maftools.svg)](https://github.com/poisonalien/maftools/issues)
 [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/poisonalien/maftools.svg)](https://github.com/poisonalien/maftools/issues)
-[![Github Stars](https://img.shields.io/github/stars/poisonalien/maftools.svg?style=social&label=Github)](https://github.com/poisonalien/maftools)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable)
 
 
