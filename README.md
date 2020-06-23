@@ -1,6 +1,4 @@
-<img src="https://github.com/PoisonAlien/maftools/blob/master/vignettes/maftools.png" height="90" width="240" />
-
-## maftools - An R package to summarize, analyze and visualize MAF files
+## maftools <img src="https://github.com/PoisonAlien/maftools/blob/devel/vignettes/maftools_hex.svg" align="right" height="140" /></a>
 
 [![bioc](http://www.bioconductor.org/shields/downloads/maftools.svg)](https://bioconductor.org/packages/stats/bioc/maftools/) 
 [![bioc](http://www.bioconductor.org/shields/years-in-bioc/maftools.svg)](http://bioconductor.org/packages/devel/bioc/html/maftools.html)
