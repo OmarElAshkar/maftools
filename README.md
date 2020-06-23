@@ -1,4 +1,4 @@
-## maftools <img src="https://github.com/PoisonAlien/maftools/blob/devel/vignettes/maftools_hex.svg" align="right" height="140" /></a>
+## maftools <img src="https://github.com/PoisonAlien/maftools/blob/devel/vignettes/maftools_hex.svg" align="left" height="140" /></a>
 
 [![bioc](http://www.bioconductor.org/shields/downloads/maftools.svg)](https://bioconductor.org/packages/stats/bioc/maftools/) 
 [![bioc](http://www.bioconductor.org/shields/years-in-bioc/maftools.svg)](http://bioconductor.org/packages/devel/bioc/html/maftools.html)
@@ -7,6 +7,7 @@
 [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/poisonalien/maftools.svg)](https://github.com/poisonalien/maftools/issues)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable)
 
+`maftools` provides a comprehensive set of functions for processing [MMAF](https://docs.gdc.cancer.gov/Data/File_Formats/MAF_Format/) files from cancer genomics studies.
 
 ## Introduction
 With advances in Cancer Genomics, Mutation Annotation Format (MAF) is being widley accepted and used to store variants detected. 
