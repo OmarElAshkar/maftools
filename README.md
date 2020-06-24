@@ -1,4 +1,4 @@
-## maftools <a href="https://github.com/PoisonAlien/maftools/"><img src="https://github.com/PoisonAlien/maftools/blob/devel/vignettes/maftools_hex.svg" align="left" height="140" /></a>
+## maftools <a href="https://github.com/PoisonAlien/maftools/"><img src="vignettes/maftools_hex.svg" align="left" height="140" /></a>
 
 [![bioc](http://www.bioconductor.org/shields/downloads/maftools.svg)](https://bioconductor.org/packages/stats/bioc/maftools/) 
 [![bioc](http://www.bioconductor.org/shields/years-in-bioc/maftools.svg)](http://bioconductor.org/packages/devel/bioc/html/maftools.html)
@@ -6,6 +6,7 @@
 [![GitHub issues](https://img.shields.io/github/issues-raw/poisonalien/maftools.svg)](https://github.com/poisonalien/maftools/issues)
 [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/poisonalien/maftools.svg)](https://github.com/poisonalien/maftools/issues)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable)
+[![Lines Of Code](https://tokei.rs/b1/github/poisonalien/maftools?category=code)](https://github.com/poisonalien/maftools)
 
 `maftools` provides a comprehensive set of functions for processing [MAF](https://docs.gdc.cancer.gov/Data/File_Formats/MAF_Format/) files from cancer genomics studies.
 

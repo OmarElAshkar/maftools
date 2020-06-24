@@ -27,6 +27,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+<img src="maftools_hex.svg" height="120" style="position:absolute;top:30px;right:0px;" />
+
 ```{r setup, message=FALSE, warning=FALSE}
 library(maftools)
 ```
